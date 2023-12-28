@@ -18,6 +18,8 @@ const loginSchema = zod.object({
 });
 
 
+//register route
+ 
 router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = registerSchema.parse(req.body);
@@ -48,3 +50,21 @@ router.post('/register', async (req, res) => {
         });
     }
 });
+
+
+//login route
+
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = loginSchema.parse(req.body);
+
+        const user = await User.findOne({ email });
+        if(!user) {
+            return res.status(401).json({ error: 'Inavlid credentials' });
+        }
+
+        
+    } catch (error) {
+        
+    }
+})
