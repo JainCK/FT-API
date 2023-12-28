@@ -5,6 +5,10 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
+const User = require('./src/models/User');
+const File = require('./src/models/File');
+const Collaboration = require('./src/models/Collaboration');
+
 const app = express();
 
 app.use(bodyParser.json());
