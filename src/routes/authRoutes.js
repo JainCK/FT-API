@@ -17,3 +17,18 @@ const loginSchema = zod.object({
     password: zod.string().min(6),
 });
 
+
+router.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = registerSchema.parse(req.body);
+
+        const existingUser = await User.findOne({ email });
+        if(existingUser) {
+            return res.status(400).json({ error: 'User exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+    } catch (error) {
+        
+    }
+})
