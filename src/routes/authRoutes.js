@@ -10,4 +10,10 @@ const registerSchema = zod.object({
     username: zod.string().min(3),
     email: zod.string().email(),
     password: zod.string().min(6),
-})
+});
+
+const loginSchema = zod.object({
+    email: zod.string().email(),
+    password: zod.string().min(6),
+});
+
