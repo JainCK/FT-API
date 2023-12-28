@@ -44,7 +44,7 @@ router.post('/register', async (req, res) => {
         });
 
     } catch (error) {
-        console(error);
+        console.error(error);
         res.status(400).json({
             message: 'Invalid input'
         });
