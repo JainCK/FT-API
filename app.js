@@ -1,11 +1,10 @@
 require ('dotenv').config();
 
-const express = require('express');
 const mongoose = require('mongoose');
+const express = require('express');
+const grid = require('gridfs-stream');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const grid = require('gridfs-stream');
-const methodOverride = require('method-override')
 
 
 const User = require('./src/models/User');
@@ -15,36 +14,31 @@ const Collaboration = require('./src/models/Collaboration');
 
 const app = express();
 
-app.use(bodyParser.json());
 app.use(cors());
-app.use(methodOverride('_method'));
+app.use(bodyParser.json());
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-    console.log("connected to MongoDB database successfully");
-})
-.catch(() => {
-    console.log("error occurred while connecting to MongoDB database in the example file");
-});
 
 app.get('/', (req, res) => {
     res.send('FS & Collab API');
 });
 
+const conn = mongoose.connection;
 let gfs;
-mongoose.connection.on('open', () => {
-    console.log("connection established successfully")
-    gfs = grid(mongoose.connection.db, mongoose.mongo);
-    gfs.collection('uploads');
-})
+
+conn.once('open', () => {
+  gfs = grid(conn.db, mongoose.mongo);
+  gfs.collection('uploads');
+  console.log('GridFS connection established');
+});
 
 
 const authRoutes = require('./src/routes/authRoutes');
-const fileRoutes = require('./src/routes/fileRoutes');
-
 app.use('/api/auth', authRoutes);
-app.use('/api/files', fileRoutes);
 
+
+const fileRoutes = require('./src/routes/fileRoutes')(gfs);
+app.use('/api/files', fileRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=> {
