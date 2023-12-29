@@ -1,44 +1,48 @@
-// tests/fileRoutes.test.js
+// routes/fileRoutes.js
 
-const request = require('supertest');
-const app = require('../app'); // Adjust the path based on your project structure
+const express = require('express');
+const router = express.Router();
 const mongoose = require('mongoose');
-const File = require('../src/models/File');
+const grid = require('gridfs-stream');
+const multer = require('multer');
 
-// Set up a test database
+const File = require('../models/File');
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Clear the test database before each test
-beforeEach(async () => {
-  await File.deleteMany();
-});
+// File Upload Route
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
-// Close the test database connection after all tests
-afterAll(async () => {
-  await mongoose.connection.close();
-});
+    const buffer = req.file.buffer;
+    const filename = req.file.originalname;
 
-describe('File Management Routes', () => {
-  test('Update File Metadata (Filename)', async () => {
-    // Create a test file
-    const file = new File({
-      filename: 'testFile.txt',
-      size: 1024,
-      type: 'text/plain',
+    const writestream = gfs.createWriteStream({
+      filename: filename,
     });
-    await file.save();
 
-    const response = await request(app)
-      .put(`/api/files/${file._id}`)
-      .send({
-        filename: 'updatedFileName.txt',
-      });
+    writestream.write(buffer);
+    writestream.end();
 
-    // Check if the response indicates success
-    expect(response.status).toBe(200);
+    const newFile = new File({
+      filename: filename,
+      size: buffer.length,
+      type: req.file.mimetype,
+    });
 
-    // Check if the file metadata is updated
-    const updatedFile = await File.findById(file._id);
-    expect(updatedFile.filename).toBe('updatedFileName.txt');
-  });
+    await newFile.save();
+
+    res.status(201).json({
+      message: 'File uploaded successfully',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
+module.exports = router;
