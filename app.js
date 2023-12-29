@@ -4,6 +4,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const grid = require('gridfs-stream');
+const methodOverride = require('method-override')
+
 
 const User = require('./src/models/User');
 const File = require('./src/models/File');
@@ -15,11 +18,9 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(cors());
+app.use(methodOverride('_method'));
 
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGO_URI);
 
 app.get('/', (req, res) => {
     res.send('FS & Collab API');
