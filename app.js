@@ -26,8 +26,20 @@ app.get('/', (req, res) => {
     res.send('FS & Collab API');
 });
 
+let gfs;
+mongoose.connection.once('open', () => {
+    gfs = grid(mongoose.connection.db, mongoose.mongo);
+    gfs.collection('uploads');
+})
+
+
 const authRoutes = require ('./src/routes/authRoutes');
 app.use('/api/auth', authRoutes);
+
+
+const fileRoutes = require('./src/routes/fileRoutes');
+app.use('./api/files', fileRoutes);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=> {
