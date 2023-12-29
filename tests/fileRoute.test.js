@@ -1,17 +1,10 @@
-// routes/fileRoutes.js
-
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const grid = require('gridfs-stream');
 const multer = require('multer');
-
-const File = require('../models/File');
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// File Upload Route
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -19,28 +12,13 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 
     const buffer = req.file.buffer;
-    const filename = req.file.originalname;
-
-    const writestream = gfs.createWriteStream({
-      filename: filename,
-    });
-
-    writestream.write(buffer);
-    writestream.end();
-
-    const newFile = new File({
-      filename: filename,
-      size: buffer.length,
-      type: req.file.mimetype,
-    });
-
-    await newFile.save();
+    // You can add more logic here to handle the file
 
     res.status(201).json({
       message: 'File uploaded successfully',
     });
   } catch (error) {
-    console.error(error);
+    console.error('File upload error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
