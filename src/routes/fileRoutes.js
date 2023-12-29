@@ -1,44 +1,68 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const grid = require('gridfs-stream');
 const multer = require('multer');
-const crypto = require('crypto');
-const path = require('path');
+const grid = require('gridfs-stream');
+const { routes } = require('../../app');
 
-const File = require('../models/File');
+let gfs;
+
+// Initialize GridFS with the provided connection
+const initializeGfs = (conn) => {
+  gfs = grid(conn.db, require('mongoose').mongo);
+  gfs.collection('uploads');
+  console.log('GridFS connection established');
+};
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-let gfs;
-
-mongoose.connection.once('open', () => {
-  gfs = grid(mongoose.connection.db, mongoose.mongo);
-  gfs.collection('uploads');
-});
-
-
-
-const fileRoutes = (gfs) => {
+// File Upload Route
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    console.log('File Upload Request Received');
+
+      if (!req.file) {
+        console.log('No file uploaded');
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const buffer = req.file.buffer;
+      const filename = req.file.originalname;
+
+      console.log('Creating write stream');
+      const writestream = gfs.createWriteStream({
+        filename: filename,
+      });
+
+      writestream.on('error', (error) => {
+        console.error('Write stream error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      });
+
+      writestream.on('finish', async () => {
+        console.log('Write stream finished');
+
+        const newFile = new File({
+          filename: filename,
+          size: buffer.length,
+          type: req.file.mimetype,
+        });
+
+        await newFile.save();
+
+        console.log('File saved to database');
+
+        res.status(201).json({
+          message: 'File uploaded successfully',
+        });
+      });
+
+      writestream.write(buffer);
+      writestream.end();
+    } catch (error) {
+      console.error('File upload error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
+  });
 
-    const buffer = req.file.buffer;
-    
-
-    res.status(201).json({
-      message: 'File uploaded successfully',
-    });
-  } catch (error) {
-    console.error('File upload error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-return router;
-};
-
-module.exports = fileRoutes;
+  module.exports = { initializeGfs, fileRoutes: router }; 
