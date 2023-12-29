@@ -37,7 +37,7 @@ const authRoutes = require ('./src/routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
 
-const fileRoutes = require('./src/routes/fileRoutes');
+const fileRoutes = require('./src/routes/fileRoute');
 app.use('./api/files', fileRoutes);
 
 
