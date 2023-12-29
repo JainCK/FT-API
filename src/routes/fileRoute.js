@@ -6,7 +6,7 @@ const multer = require('multer');
 
 
 const File = require('../models/File');
-const readstream = require('gridfs-stream/lib/readstream');
+
 
 let gfs;
 mongoose.connection.once('open', () => {
