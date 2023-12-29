@@ -97,6 +97,25 @@ router.get('/:fileId/content', async (req, res) => {
 });
 
 
+router.put('/:fileId', async (req, res) => {
+    try {
+      const file = await File.findById(req.params.fileId);
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      file.filename = req.body.filename;
+  
+      await file.save();
+  
+      res.status(200).json({ message: 'File metadata updated successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
 //delete
 
 router.delete('/:fileId', async (req, res) => {
