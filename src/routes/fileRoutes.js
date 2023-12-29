@@ -1,9 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+const grid = require('gridfs-stream');
 const multer = require('multer');
+const crypto = require('crypto');
+const path = require('path');
+
+const File = require('../models/File');
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+let gfs;
+
+mongoose.connection.once('open', () => {
+  gfs = grid(mongoose.connection.db, mongoose.mongo);
+  gfs.collection('uploads');
+});
+
+
 
 const fileRoutes = (gfs) => {
 router.post('/upload', upload.single('file'), async (req, res) => {
