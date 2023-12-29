@@ -83,7 +83,7 @@ router.get('/:fileId/content', async (req, res) => {
         }
 
         const readstream = gfs.createReadStream({
-            filename: file._id.toString(),
+            filename: File._id.toString(),
         });
 
 
@@ -97,5 +97,26 @@ router.get('/:fileId/content', async (req, res) => {
 });
 
 
+//delete
 
-
+router.delete('/:fileId', async (req, res) => {
+    try {
+      const file = await File.findById(req.params.fileId);
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+  
+      await File.findByIdAndDelete(req.params.fileId);
+  
+      gfs.remove({ filename: req.params.fileId.toString(), root: 'uploads' }, (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.status(200).json({ message: 'File deleted successfully' });
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
