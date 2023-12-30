@@ -74,6 +74,23 @@ router.put('/:fileId', async (req, res) => {
 });
 
 
+router.delete('/:fileId', async (req, res) => {
+  try {
+    await File.findOneAndDelete({ _id: req.params.fileId });
+    gfs.remove({ _id: req.params.fileId, root: 'uploads' }, (err) => {
+      if (err) {
+        console.error('Delete file error:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.status(200).json({ message: 'File deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Delete file error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
   return router;
 };
 
