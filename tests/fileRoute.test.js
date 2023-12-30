@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('./path-to-your-app');
+const app = require('../app');
 
 describe('File Routes', () => {
   it('should upload a file', async () => {
