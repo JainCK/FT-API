@@ -62,6 +62,15 @@ const fileRoutes = (bucket) => {
     }
   });
 
+router.put('/:fileId', async (req, res) => {
+  try {
+    const { filename } = req.body;
+    await File.findOneAndUpdate({ _id: req.params.fileId }, { filename });
+    res.status(200).json({ message: 'File metadata updated successfully' });
+  }
+})
+
+
   return router;
 };
 
