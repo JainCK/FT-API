@@ -1,68 +1,71 @@
-const express = require('express');
-const router = express.Router();
+// fileRoute.js
+
+const mongoose = require('mongoose');
+const { Readable } = require('stream');
 const multer = require('multer');
-const grid = require('gridfs-stream');
-const { routes } = require('../../app');
+const { GridFSBucket } = require('mongodb');
 
-let gfs;
+const File = require('../models/File');
 
-// Initialize GridFS with the provided connection
-const initializeGfs = (conn) => {
-  gfs = grid(conn.db, require('mongoose').mongo);
-  gfs.collection('uploads');
-  console.log('GridFS connection established');
+const initializeGfs = (db) => {
+  return new GridFSBucket(db, {
+    bucketName: 'uploads', // Change this to your desired bucket name
+  });
 };
 
+
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-// File Upload Route
-router.post('/upload', upload.single('file'), async (req, res) => {
-  try {
-    console.log('File Upload Request Received');
+const fileRoutes = (bucket) => {
+  const router = require('express').Router();
 
+  router.post('/upload', upload.single('file'), async (req, res) => {
+    try {
       if (!req.file) {
-        console.log('No file uploaded');
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      const buffer = req.file.buffer;
-      const filename = req.file.originalname;
+      const { originalname, buffer } = req.file;
+      const filename = originalname;
 
-      console.log('Creating write stream');
-      const writestream = gfs.createWriteStream({
-        filename: filename,
-      });
+      const readableStream = new Readable();
+      readableStream.push(buffer);
+      readableStream.push(null);
 
-      writestream.on('error', (error) => {
-        console.error('Write stream error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-      });
+      const uploadStream = bucket.openUploadStream(filename);
+      readableStream.pipe(uploadStream);
 
-      writestream.on('finish', async () => {
-        console.log('Write stream finished');
+      uploadStream.on('finish', async () => {
+        console.log('File uploaded successfully');
 
-        const newFile = new File({
+        const newFile = {
           filename: filename,
           size: buffer.length,
           type: req.file.mimetype,
-        });
+        };
 
-        await newFile.save();
+        // Assuming you have a mongoose model for files
+        const savedFile = await File.create(newFile);
 
         console.log('File saved to database');
-
         res.status(201).json({
           message: 'File uploaded successfully',
+          fileId: savedFile._id,
         });
       });
 
-      writestream.write(buffer);
-      writestream.end();
+      readableStream.on('error', (error) => {
+        console.error('Read stream error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      });
     } catch (error) {
       console.error('File upload error:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
 
-  module.exports = { initializeGfs, fileRoutes: router }; 
+  return router;
+};
+
+module.exports = { initializeGfs, fileRoutes };
