@@ -90,6 +90,10 @@ router.delete('/:fileId', async (req, res) => {
   }
 });
 
+router.get('/:fileId/content', (req, res) => {
+  gfs.createReadStream({ _id: req.params.fileId, root: 'uploads' })
+    .pipe(res);
+});
 
   return router;
 };
