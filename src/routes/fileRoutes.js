@@ -67,8 +67,11 @@ router.put('/:fileId', async (req, res) => {
     const { filename } = req.body;
     await File.findOneAndUpdate({ _id: req.params.fileId }, { filename });
     res.status(200).json({ message: 'File metadata updated successfully' });
+  }catch (error) {
+    console.error('Update file error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-})
+});
 
 
   return router;
