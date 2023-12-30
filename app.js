@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 
 const mongoose = require('mongoose');
@@ -21,18 +22,15 @@ app.get('/', (req, res) => {
 const conn = mongoose.connection;
 
 const { initializeGfs, fileRoutes } = require('./src/routes/fileRoutes');
+const bucket = initializeGfs(conn); // Assuming `conn` is your MongoDB connection
 
-conn.once('open', () => {
-  initializeGfs(conn);
-});
+const apiFileRoutes = fileRoutes(bucket);
+app.use('/api/files', apiFileRoutes);
 
 mongoose.connect(process.env.MONGO_URI);
 
 const authRoutes = require('./src/routes/authRoutes');
 app.use('/api/auth', authRoutes);
-
-const { fileRoutes: apiFileRoutes } = require('./src/routes/fileRoutes');
-app.use('/api/files', apiFileRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
