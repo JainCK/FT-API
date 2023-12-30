@@ -1,6 +1,3 @@
-// fileRoute.js
-
-const mongoose = require('mongoose');
 const { Readable } = require('stream');
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
@@ -9,7 +6,7 @@ const File = require('../models/File');
 
 const initializeGfs = (db) => {
   return new GridFSBucket(db, {
-    bucketName: 'uploads', // Change this to your desired bucket name
+    bucketName: 'uploads', 
   });
 };
 
@@ -45,7 +42,7 @@ const fileRoutes = (bucket) => {
           type: req.file.mimetype,
         };
 
-        // Assuming you have a mongoose model for files
+        
         const savedFile = await File.create(newFile);
 
         console.log('File saved to database');
