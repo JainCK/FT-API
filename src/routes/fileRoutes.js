@@ -77,28 +77,44 @@ router.put('/:fileId', async (req, res) => {
 router.delete('/:fileId', async (req, res) => {
   try {
     const fileId = req.params.fileId;
-    const objectId = new ObjectId(fileId); // Create a valid ObjectId
+    const objectId = new ObjectId(fileId);
 
-    await File.findOneAndDelete({ _id: objectId });
+    // Directly delete from File collection
+    const deletedFile = await File.findOneAndDelete({ _id: objectId });
 
-    // Use delete method for GridFSBucket
-    bucket.delete({ _id: objectId, root: 'uploads' }, (err) => {
-      if (err) {
-        console.error('Delete file error:', err);
-        return res.status(500).json({ error: 'Internal Server Error' });
-      }
-      res.status(200).json({ message: 'File deleted successfully' });
-    });
+    if (!deletedFile) {
+      return res.status(200).json({ message: 'File not found. Considered deleted.' });
+    }
+
+    res.status(200).json({ message: 'File deleted successfully' });
+    console.log("file deleted")
   } catch (error) {
     console.error('Delete file error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-router.get('/:fileId/content', (req, res) => {
-  bucket.openDownloadStream(req.params.fileId).pipe(res);
-});
 
+router.get('/:fileId/content', (req, res) => {
+  const fileId = req.params.fileId;
+  const objectId = new ObjectId(fileId);
+
+  // Check if the file exists in GridFSBucket
+  bucket.find({ _id: objectId }).limit(1).next((err, file) => {
+    if (err) {
+      console.error('Find file error:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found in GridFSBucket' });
+    }
+
+    // Create read stream and pipe to response
+    const downloadStream = bucket.openDownloadStream(objectId);
+    downloadStream.pipe(res);
+  });
+});
 
   return router;
 };
