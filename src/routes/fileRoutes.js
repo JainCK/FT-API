@@ -76,8 +76,9 @@ router.put('/:fileId', async (req, res) => {
 
 router.delete('/:fileId', async (req, res) => {
   try {
-    await File.findOneAndDelete({ _id: req.params.fileId });
-    gfs.remove({ _id: req.params.fileId, root: 'uploads' }, (err) => {
+    const fileId = req.params.fileId.toString(); // Ensure fileId is a string
+    await File.findOneAndDelete({ _id: fileId });
+    bucket.deleteOne({ _id: fileId, root: 'uploads' }, (err) => {
       if (err) {
         console.error('Delete file error:', err);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -91,9 +92,9 @@ router.delete('/:fileId', async (req, res) => {
 });
 
 router.get('/:fileId/content', (req, res) => {
-  gfs.createReadStream({ _id: req.params.fileId, root: 'uploads' })
-    .pipe(res);
+  bucket.openDownloadStream(req.params.fileId).pipe(res);
 });
+
 
   return router;
 };
