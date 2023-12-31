@@ -1,6 +1,7 @@
 const { Readable } = require('stream');
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const File = require('../models/File');
 
@@ -73,12 +74,15 @@ router.put('/:fileId', async (req, res) => {
   }
 });
 
-
 router.delete('/:fileId', async (req, res) => {
   try {
-    const fileId = req.params.fileId.toString(); // Ensure fileId is a string
-    await File.findOneAndDelete({ _id: fileId });
-    bucket.deleteOne({ _id: fileId, root: 'uploads' }, (err) => {
+    const fileId = req.params.fileId;
+    const objectId = new ObjectId(fileId); // Create a valid ObjectId
+
+    await File.findOneAndDelete({ _id: objectId });
+
+    // Use delete method for GridFSBucket
+    bucket.delete({ _id: objectId, root: 'uploads' }, (err) => {
       if (err) {
         console.error('Delete file error:', err);
         return res.status(500).json({ error: 'Internal Server Error' });
