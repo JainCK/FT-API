@@ -19,9 +19,10 @@ app.get('/', (req, res) => {
   res.send('FS & Collab API');
 });
 
-const conn = mongoose.connection;
+
 
 const { initializeGfs, fileRoutes } = require('./src/routes/fileRoutes');
+const conn = mongoose.connection;
 const bucket = initializeGfs(conn); // Assuming `conn` is your MongoDB connection
 
 const apiFileRoutes = fileRoutes(bucket);
