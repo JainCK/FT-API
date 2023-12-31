@@ -95,25 +95,27 @@ router.delete('/:fileId', async (req, res) => {
 });
 
 
-router.get('/:fileId/content', (req, res) => {
-  const fileId = req.params.fileId;
-  const objectId = new ObjectId(fileId);
+router.get('/:fileId/content', async (req, res) => {
+  try {
+    const fileId = req.params.fileId;
+    const objectId = new ObjectId(fileId);
 
-  // Check if the file exists in GridFSBucket
-  bucket.find({ _id: objectId }).limit(1).next((err, file) => {
-    if (err) {
-      console.error('Find file error:', err);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
+    // Check if the file exists in the File collection
+    const file = await File.findOne({ _id: objectId });
 
     if (!file) {
-      return res.status(404).json({ error: 'File not found in GridFSBucket' });
+      return res.status(404).json({ error: 'File not found' });
     }
 
-    // Create read stream and pipe to response
+    // Open a download stream from the GridFSBucket
     const downloadStream = bucket.openDownloadStream(objectId);
+
+    // Pipe the download stream to the response
     downloadStream.pipe(res);
-  });
+  } catch (error) {
+    console.error('Download file error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
   return router;
