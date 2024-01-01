@@ -20,7 +20,7 @@ const initializeSocketIo = (server) => {
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const fileRoutes = (bucket) => {
+const fileRoutes = (bucket, io) => {
   const router = require('express').Router();
 
   router.post('/upload', upload.single('file'), async (req, res) => {
@@ -52,6 +52,9 @@ const fileRoutes = (bucket) => {
         const savedFile = await File.create(newFile);
 
         console.log('File saved to database');
+
+        io.emit('fileUploaded', { message: 'File uploaded successfully', fileId: savedFile._id });
+        
         res.status(201).json({
           message: 'File uploaded successfully',
           fileId: savedFile._id,
