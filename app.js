@@ -21,11 +21,12 @@ app.get('/', (req, res) => {
 
 
 
-const { initializeGfs, fileRoutes } = require('./src/routes/fileRoutes');
+const { initializeGfs, fileRoutes, initializeSocketIo } = require('./src/routes/fileRoutes');
 const conn = mongoose.connection;
 const bucket = initializeGfs(conn); // Assuming `conn` is your MongoDB connection
 
-const apiFileRoutes = fileRoutes(bucket);
+const io = initializeSocketIo(httpServer);
+const apiFileRoutes = fileRoutes(bucket, io);
 app.use('/api/files', apiFileRoutes);
 
 mongoose.connect(process.env.MONGO_URI);
