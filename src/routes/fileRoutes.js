@@ -2,6 +2,7 @@ const { Readable } = require('stream');
 const multer = require('multer');
 const { GridFSBucket } = require('mongodb');
 const { ObjectId } = require('mongodb');
+const { Server } = require('socket.io');
 
 const File = require('../models/File');
 
@@ -11,6 +12,10 @@ const initializeGfs = (db) => {
   });
 };
 
+const initializeSocketIo = (server) => {
+  const io = new Server(server);
+  return io;
+};
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
