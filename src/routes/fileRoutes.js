@@ -17,6 +17,9 @@ const initializeSocketIo = (server) => {
   return io;
 };
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const fileRoutes = (bucket, io) => {
   const router = require('express').Router();
 
@@ -73,6 +76,12 @@ const fileRoutes = (bucket, io) => {
     try {
       const { filename } = req.body;
       await File.findOneAndUpdate({ _id: req.params.fileId }, { filename });
+
+      // Notify connected clients about the file update
+      if (io) {
+        io.emit('fileUpdated', { fileId: req.params.fileId, filename });
+      }
+
       res.status(200).json({ message: 'File metadata updated successfully' });
     } catch (error) {
       console.error('Update file error:', error);
@@ -90,6 +99,11 @@ const fileRoutes = (bucket, io) => {
 
       if (!deletedFile) {
         return res.status(200).json({ message: 'File not found. Considered deleted.' });
+      }
+
+      // Notify connected clients about the file deletion
+      if (io) {
+        io.emit('fileDeleted', { fileId: req.params.fileId });
       }
 
       res.status(200).json({ message: 'File deleted successfully' });
@@ -119,6 +133,11 @@ const fileRoutes = (bucket, io) => {
 
       // Open a download stream from the GridFSBucket
       const downloadStream = bucket.openDownloadStream(objectId);
+
+      // Notify connected clients about the file retrieval
+      if (io) {
+        io.emit('fileRetrieved', { fileId: req.params.fileId });
+      }
 
       // Handle errors during download
       downloadStream.on('error', (error) => {
