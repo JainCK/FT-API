@@ -1,0 +1,245 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "File and Collaboration API",
+    "version": "1.0.0",
+    "description": "The File and Collaboration API provides functionalities for managing files and supporting collaboration. Users can upload, update metadata, delete, and download files using this API. Additionally, the API supports real-time updates through Socket.io for file-related events.\n"
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "User Registration",
+        "description": "Register a new user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User registered successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User Login",
+        "description": "Log in as an existing user to obtain an authentication token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "<JWT token>"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid credentials"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/upload": {
+      "post": {
+        "summary": "Upload a file",
+        "description": "Upload a file to the server.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "File uploaded successfully",
+                  "fileId": "<fileId>"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/{fileId}": {
+      "put": {
+        "summary": "Update file metadata",
+        "description": "Update metadata for a specific file.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the file to be updated."
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File metadata updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "File metadata updated successfully"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a file",
+        "description": "Delete a file from the server.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the file to be deleted."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "File deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "File not found. Considered deleted."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/{fileId}/content": {
+      "get": {
+        "summary": "Download file content",
+        "description": "Download the content of a specific file.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the file to be downloaded."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File content downloaded successfully",
+            "content": {
+              "application/octet-stream": {
+                "example": "<file content>"
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "File not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

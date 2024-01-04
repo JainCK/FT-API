@@ -1,3 +1,4 @@
+const foo = require('./openapi3_0.json')
 
 require('dotenv').config();
 
@@ -16,18 +17,19 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
-  res.send('FS & Collab API');
+  const moo = JSON.stringify(foo)
+  res.send(moo);
 });
 
 
 
-const { initializeGfs, fileRoutes, initializeSocketIo } = require('./src/routes/fileRoutes');
+//const { initializeGfs, fileRoutes, initializeSocketIo } = require('./src/routes/fileRoutes');
 const conn = mongoose.connection;
-const bucket = initializeGfs(conn); // Assuming `conn` is your MongoDB connection
+//const bucket = initializeGfs(conn); // Assuming `conn` is your MongoDB connection
 
-const io = initializeSocketIo(httpServer);
-const apiFileRoutes = fileRoutes(bucket, io);
-app.use('/api/files', apiFileRoutes);
+//const io = initializeSocketIo(httpServer);
+//const apiFileRoutes = fileRoutes(bucket, io);
+//app.use('/api/files', apiFileRoutes);
 
 mongoose.connect(process.env.MONGO_URI);
 
