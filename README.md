@@ -46,4 +46,6 @@ Welcome to the File Transfer and Collab API! This API is built using Express, Mo
 - Utilize [Socket.IO](http://socket.io/) for real-time communication.
 - Implement features like collaborative text editing, commenting, and version control.
 
-Feel free to explore, contribute, or use this API for your collaborative file transfer and communication needs. Happy coding!
+Feel free to explore, contribute, or use this API for your collaborative file transfer and communication needs. Happy coding! {
+I am currently working on some fixes and deploymen, the live link will be provided here once its completed.
+}
